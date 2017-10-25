@@ -120,7 +120,7 @@ export default ({ config, db }) => {
 
     api.get('/best/users',validateToken,authenticate,(req,res)=>{
 
-        User.find({}).select('completeName spendTotal').sort('-spendTotal completeName').limit(3).exec((err,result)=>{
+        User.find({isAdmin:false}).select('completeName spendTotal').sort('-spendTotal completeName').limit(3).exec((err,result)=>{
             if (err) {
                 res.status(500).json({msg:'Ouve um erro na sua Query',error:err})
                 return;

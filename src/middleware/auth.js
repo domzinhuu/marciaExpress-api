@@ -86,6 +86,14 @@ let verifyIfUserIsAdmin = (req, res, next) => {
                 return;
             }
 
+            if(!user){
+                jsonResponse.messages.push('Nenhum usuario encontrado com as credenciais informada.');
+                jsonResponse.data = null;
+                jsonResponse.error = 'UserNotExists';
+                res.status(403).json(jsonResponse);
+                return;
+            }
+
             if (!user.isAdmin) {
                 jsonResponse.messages.push('Apenas administradores podem realizar esta operação');
                 jsonResponse.data = null;

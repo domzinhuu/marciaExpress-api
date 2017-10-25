@@ -1,0 +1,1 @@
+{"version":3,"sources":["../../src/config/index.js"],"names":["module","exports","port","jsonLimit","mongooseUrl"],"mappings":";;AAAAA,OAAOC,OAAP,GAAiB;AACbC,UAAK,MADQ;AAEbC,eAAU,OAFG;AAGbC,iBAAY;AAHC,CAAjB","file":"index.js","sourcesContent":["module.exports = {\n    port:'3005',\n    jsonLimit:'100kb',\n    mongooseUrl:'mongodb://localhost:27017/marciadb'\n}"]}

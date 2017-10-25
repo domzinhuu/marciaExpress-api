@@ -2,10 +2,10 @@ import jwt from 'jsonwebtoken';
 import expresJwt from 'express-jwt';
 import Response from '../utils/response';
 import User from '../models/user-model';
-
+import * as env from '../.env'
 
 const TOKEN_TIME = '2h';
-const SECRET = 'M4rC1a_4p1';
+const SECRET = env.secretKey;
 
 let authenticate = expresJwt({ secret: SECRET });
 

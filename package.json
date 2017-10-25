@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development nodemon -w src --exec \"babel-node src --presets env,stage-0\"",
-    "build": "babel src -s -D -d dist --presets env,stage-0",
+    "build": "./node_modules/.bin/babel src -s -D -d dist --presets env,stage-0",
     "prestart": "npm run -s build",
     "start": "NODE_ENV=production pm2 start dist",
     "stop": "NODE_ENV=production pm2 stop dist"

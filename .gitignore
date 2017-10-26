@@ -44,4 +44,5 @@ Thumbs.db
 yarn.lock
 
 #private folders
-/src/config
+/src/config/index.js
+src/config/index.js

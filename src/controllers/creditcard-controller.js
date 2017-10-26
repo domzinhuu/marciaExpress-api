@@ -110,7 +110,7 @@ export default ({ config, db }) => {
         })
     })
 
-    //GET ONE /api/cards/:slug
+    //GET ONE /api/cards/:id
     api.get('/:id', validateToken, authenticate, (req, res) => {
         const id = req.params.id
         let jsonResponse = new Response()

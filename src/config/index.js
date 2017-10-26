@@ -1,7 +1,7 @@
-const port = process.env.PORT || '3005';
+const port = '3005';
 module.exports = {
     port: port,
     jsonLimit: '100kb',
-    mongooseUrl: process.env.MONGOLAB_URI ? process.env.MONGOLAB_URI : 'mongodb://localhost:27017/marciadb',
-    secretKey: process.env.SECRET_KEY ? process.env.SECRET_KEY : 'S3c4E7-K3y-L0c4L'
+    mongooseUrl:'mongodb://localhost:27017/marciadb',
+    secretKey: 'S3c4E7-K3y-L0c4L-Al7e4aR'
 }

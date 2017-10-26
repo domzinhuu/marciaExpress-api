@@ -8,7 +8,7 @@
     "build": "babel src -s -D -d dist --presets env,stage-0",
     "prestart": "npm run -s build",
     "start": "NODE_ENV=production pm2 start dist",
-    "stop": "NODE_ENV=production node stop dist"
+    "stop": "NODE_ENV=production pm2 stop dist"
   },
   "eslintConfig": {
     "parserOptions": {

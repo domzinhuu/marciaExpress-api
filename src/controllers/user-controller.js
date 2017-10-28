@@ -34,7 +34,7 @@ export default ({ config, db }) => {
             }
 
             let user = new User(data);
-            user.slug = slugify(user.completeName, '_')
+            user.slug = slugify(user.completeName.toLowerCase(), '_')
             User.register(user, data.password, (err, createdUser) => {
                 if (err) {
                     response.data = null;
@@ -62,8 +62,8 @@ export default ({ config, db }) => {
     api.post('/login', verifyIfUserIsAdmin,
         passport.authenticate('local', { session: false, scope: [] }), accessTokenGeneration, respond);
 
+    
     //GET ALL /api/users/
-  
     api.get('', validateToken, authenticate, (req, res) => {
         const query = req.query.query || ''
         const active = req.query.active
@@ -87,8 +87,7 @@ export default ({ config, db }) => {
                 return;
 
             }
-
-            response.data = users;
+            response.data = _.orderBy(users,['slug'],['asc'])
             response.messages.push('Usuarios carregados');
             response.err = null;
 
@@ -153,6 +152,7 @@ export default ({ config, db }) => {
 
             // segurança para não permitir injeção de dados..
             let updateValues = {
+                slug: slugify(data.completeName.toLowerCase(), '_'),
                 completeName: data.completeName,
                 cellphone: data.cellphone,
                 username: data.username

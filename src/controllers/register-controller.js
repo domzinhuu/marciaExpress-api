@@ -7,6 +7,7 @@ import User from '../models/user-model';
 import Register from '../models/register-model';
 
 import CreditCard from '../models/credit-card';
+import Notify from '../models/notify.model';
 
 import { MONTHS } from '../utils/variables'
 
@@ -101,72 +102,29 @@ export default ({ config, db }) => {
 
     //GET ALL REGISTER OF THE USER /api/registers/user/:id
     api.get('/user/:id', validateToken, authenticate, (req, res) => {
+        const userId = req.params.id;
+        const month = MONTHS[new Date().getMonth()]
+        const year = new Date().getFullYear()
+        const criteria = createCriteria(month, year, undefined, userId)
 
-        let forUserId = req.params.id;
-        let jsonResponse = new Response();
+        Register.find({ $and: criteria }).populate({ path: 'creditCard', select: 'name' }).exec((err, registers) => {
 
-        User.findById(req.user.id, (err, userAuthenticated) => {
             if (err) {
-                jsonResponse.data = null;
-                jsonResponse.messages.push('Ouve erro interno');
-                jsonResponse.error = err;
-                res.status(500).json(jsonResponse);
-                return;
+                jsonResponse.data = null
+                jsonResponse.messages.push('Ouve erro interno')
+                jsonResponse.error = err
+                res.status(500).json(jsonResponse)
+                return
             }
 
-            if (userAuthenticated.isAdmin) {
-                findRegisterOf(forUserId, jsonResponse).then((response) => {
-                    if (response.error) {
-                        res.status(500).json(response);
-                        return;
-                    }
-
-                    res.status(200).json(response);
-                });
-
-            } else {
-                jsonResponse.data = null;
-                jsonResponse.messages.push('Apenas administradores podem usar esse recurso.');
-                jsonResponse.error = 'userNotAdmin';
-
-                res.status(403).json(jsonResponse);
-            }
+            let jsonResponse = new Response()
+            jsonResponse.data = getHomeDataMobile(registers, month, year);
+            jsonResponse.messages.push('Registros carregados');
+            jsonResponse.error = null;
+            res.status(200).json(jsonResponse)
 
         });
 
-    });
-
-    //PUT EDIT REGISTER /api/registers/:id
-    api.put('/:id', validateToken, authenticate, (req, res) => {
-        let data = req.body;
-        let jsonResponse = new Response();
-
-        verifyIfUserLoggedIsAdmin(jsonResponse, req, res, () => {
-            validate(req).then(response => {
-                if (response.hasError) {
-                    res.status(500).json(response);
-                    return;
-                }
-
-                Register.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true, upsert: false },
-                    (err, updated) => {
-                        if (err) {
-                            jsonResponse.data = null;
-                            jsonResponse.messages.push('Ouve erro interno')
-                            jsonResponse.error = err;
-                            res.status(500).json(jsonResponse);
-                            return;
-                        }
-                        jsonResponse.data = updated;
-                        jsonResponse.messages.push('Registro atualizado com sucesso')
-                        jsonResponse.error = null;
-
-                        res.status(200).json(jsonResponse);
-
-                    });
-
-            })
-        });
     });
 
     //DELETE REGISTER /api/registers
@@ -187,7 +145,6 @@ export default ({ config, db }) => {
                     userFound.spendTotal -= register.value
 
                     userFound.save(err => {
-                        console.log(register)
                         CreditCard.findById(register.creditCard, (err, cardFound) => {
                             cardFound.used -= 1
 
@@ -204,6 +161,34 @@ export default ({ config, db }) => {
         });
     });
 
+    api.post('/save/notify', (req, res) => {
+        const data = req.body
+        let jsonResponse = new Response()
+
+        let notify = new Notify(data)
+
+        notify.save((err, saved) => {
+            if (err) {
+                jsonResponse.data = null
+                jsonResponse.messages.push('Ouve erro interno')
+                jsonResponse.error = err
+                res.status(500).json(jsonResponse)
+                return
+            }
+
+            jsonResponse.data = saved
+            jsonResponse.messages.push('Notificação enviada com sucesso.')
+            jsonResponse.error = null
+            res.status(200).json(jsonResponse)
+        })
+    })
+
+
+    api.get('/notify', validateToken, authenticate, (req, res) => {
+        Notify.find().populate({ path: 'user', select: 'username' }).exec((err, notifies) => {
+            res.status(200).json(notifies)
+        })
+    })
     return api;
 }
 
@@ -301,5 +286,35 @@ function getCriteriaParams(req) {
         year,
         cardId,
         userId
+    }
+}
+
+function getHomeDataMobile(registers, month, year) {
+    const byCard = _.groupBy(registers, 'creditCard.name')
+    const mapValue = []
+
+    _.forEach(byCard, (cardList) => {
+        let oneCard = {
+            name: cardList[0].creditCard.name,
+
+        }
+
+        let myValues = _.map(cardList, (card) => {
+            const installment = _.find(card.installments, (item) => (item.paymentMonth === month && item.paymentYear == year))
+            return {
+                value: installment.value,
+                paymentDate: installment.paymentDate
+            }
+        })
+
+        oneCard.paymentDate = myValues[0].paymentDate
+        oneCard.value = _.sumBy(myValues, 'value')
+        oneCard.value = oneCard.value / 100
+        mapValue.push(oneCard)
+    })
+
+    return {
+        cardList: _.orderBy(mapValue, ['paymentDate'], ['asc']),
+        totalPeriod: _.sumBy(mapValue, 'value')
     }
 }

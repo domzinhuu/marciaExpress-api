@@ -232,5 +232,8 @@ export default ({ config, db }) => {
         });
     });
 
+    api.get('/validate/token',validateToken,(req,res)=>{
+        res.status(200).json({valid:true})
+    })
     return api;
 }

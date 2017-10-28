@@ -161,6 +161,7 @@ export default ({ config, db }) => {
         });
     });
 
+    //POST NOTIFY /api/registers/save/notify
     api.post('/save/notify', (req, res) => {
         const data = req.body
         let jsonResponse = new Response()
@@ -183,12 +184,56 @@ export default ({ config, db }) => {
         })
     })
 
+    //GET ALL notifitions /api/registers/notify/all
+    api.get('/notify/all', validateToken, authenticate, (req, res) => {
+        const dayAgo = req.query.dayAgo || 15
+        const read = req.query.read || undefined
+        const dateFilter = new Date()
+        dateFilter.setDate(dateFilter.getDate() - dayAgo)
 
-    api.get('/notify', validateToken, authenticate, (req, res) => {
-        Notify.find().populate({ path: 'user', select: 'username' }).exec((err, notifies) => {
-            res.status(200).json(notifies)
+        let criteria = [{ registeredAt: { $gte: dateFilter } }]
+
+        if (read != undefined) {
+            criteria.push({ read: read })
+        }
+
+        Notify.find({ $and: criteria }).populate({ path: 'user', select: 'username' }).exec((err, notifies) => {
+            const news = _.filter(notifies, ['read', false]).length
+            notifies = _.orderBy(notifies, ['registeredAt'], ['desc'])
+            res.status(200).json({ notifies, news })
         })
     })
+
+    //PUT Notify /api/registers/notify/:id
+    api.put('/notify/:id', validateToken, authenticate, (req, res) => {
+        const id = req.body.id
+
+        Notify.findById(id, (err, notify) => {
+            if (err) {
+                res.status(500).json({ data: null, messages: ['Ouve algum erro'], error: err })
+                return
+            }
+            notify.read = !notify.read
+            notify.save((err) => {
+                res.status(200).json({ msg: 'Operação concluida' })
+            })
+        })
+    })
+
+    //PUT Notify /api/registers/notify/:id
+    api.put('/notify/check/all', validateToken, authenticate, (req, res) => {
+
+
+        Notify.update({read:false}, { $set: { read: true } },{multi:true}, (err) => {
+            if (err) {
+                res.status(500).json({ data: null, messages: ['Ouve algum erro'], error: err })
+                return
+            }
+
+            res.status(200).json({ msg: 'Tudo atualizado' })
+        })
+    })
+
     return api;
 }
 

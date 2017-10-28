@@ -1,6 +1,7 @@
 function Response() {
-    this.data = {},
-    this.messages = [],
+    this.updated = false
+    this.data = {}
+    this.messages = []
     this.error = {}
 }
 

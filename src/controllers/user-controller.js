@@ -169,6 +169,13 @@ export default ({ config, db }) => {
                     return;
                 }
 
+                if(data.updatePassword && data.password){
+                    updated.setPassword(data.password,()=>{
+                        updated.save()
+                    })
+                }
+
+                jsonResponse.updated = true
                 jsonResponse.data = updated;
                 jsonResponse.messages.push('Usuario atualizado com sucesso');
                 jsonResponse.error = null;

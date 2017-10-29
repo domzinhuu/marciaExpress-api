@@ -127,6 +127,29 @@ export default ({ config, db }) => {
 
     });
 
+    api.get('/user/:id/history', validateToken, authenticate, (req, res) => {
+        const userId = req.params.id
+        let initDate = new Date(new Date().getFullYear(), 0, 1, 0, 0, 0);
+    
+        Register.find({ $and: [{ user: userId }, { buyAt: { $gte: initDate, $lte: new Date() } }] }
+            , (err, result) => {
+                
+                let mapeadoErdernado = _.orderBy(_.map(result,(item)=>{
+                    return {
+                        buyAt:item.buyAt,
+                        local:item.local,
+                        value:item.value,
+                        paymentMonth:item.paymentMonth
+                    }
+                }),['buyAt'],['asc'])
+
+                let agrupado = _.groupBy(mapeadoErdernado,'paymentMonth')
+                res.status(200).json(_.values(agrupado))
+            }
+
+        )
+    })
+
     //DELETE REGISTER /api/registers
     api.delete('/:id', validateToken, authenticate, (req, res) => {
 
@@ -204,6 +227,9 @@ export default ({ config, db }) => {
         })
     })
 
+
+
+
     //PUT Notify /api/registers/notify/:id
     api.put('/notify/:id', validateToken, authenticate, (req, res) => {
         const id = req.body.id
@@ -224,7 +250,7 @@ export default ({ config, db }) => {
     api.put('/notify/check/all', validateToken, authenticate, (req, res) => {
 
 
-        Notify.update({read:false}, { $set: { read: true } },{multi:true}, (err) => {
+        Notify.update({ read: false }, { $set: { read: true } }, { multi: true }, (err) => {
             if (err) {
                 res.status(500).json({ data: null, messages: ['Ouve algum erro'], error: err })
                 return
@@ -233,6 +259,7 @@ export default ({ config, db }) => {
             res.status(200).json({ msg: 'Tudo atualizado' })
         })
     })
+
 
     return api;
 }

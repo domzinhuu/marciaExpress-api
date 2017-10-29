@@ -31,6 +31,8 @@ export default ({ config, db }) => {
             }
 
             let register = new Register(data);
+            let dayPlusOne = register.buyAt.getDate() + 1
+            register.buyAt.setDate(dayPlusOne)
 
             register.save((err) => {
                 if (err) {

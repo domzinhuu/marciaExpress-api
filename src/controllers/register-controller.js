@@ -105,8 +105,13 @@ export default ({ config, db }) => {
     //GET ALL REGISTER OF THE USER /api/registers/user/:id
     api.get('/user/:id', validateToken, authenticate, (req, res) => {
         const userId = req.params.id;
-        const month = MONTHS[new Date().getMonth()]
+        let month = MONTHS[new Date().getMonth()]
         const year = new Date().getFullYear()
+
+
+        if(new Date().getDate() >= 25){
+            month = MONTHS[new Date().getMonth()+1]
+        }
         const criteria = createCriteria(month, year, undefined, userId)
 
         Register.find({ $and: criteria }).populate({ path: 'creditCard', select: 'name' }).exec((err, registers) => {
@@ -132,20 +137,23 @@ export default ({ config, db }) => {
     api.get('/user/:id/history', validateToken, authenticate, (req, res) => {
         const userId = req.params.id
         let initDate = new Date(new Date().getFullYear(), 0, 1, 0, 0, 0);
-    
-        Register.find({ $and: [{ user: userId }, { buyAt: { $gte: initDate, $lte: new Date() } }] }
+        let lastDate = new Date()
+
+        Register.find({ $and: [{ user: userId }, { buyAt: {$gte: initDate,$lte: lastDate} }] }
             , (err, result) => {
                 
                 let mapeadoErdernado = _.orderBy(_.map(result,(item)=>{
                     return {
                         buyAt:item.buyAt,
                         local:item.local,
+                        product:item.productName,
                         value:item.value,
+                        buyAtMonth:MONTHS[item.buyAt.getMonth()],
                         paymentMonth:item.paymentMonth
                     }
                 }),['buyAt'],['asc'])
 
-                let agrupado = _.groupBy(mapeadoErdernado,'paymentMonth')
+                let agrupado = _.groupBy(mapeadoErdernado,'buyAtMonth')
                 res.status(200).json(_.values(agrupado))
             }
 

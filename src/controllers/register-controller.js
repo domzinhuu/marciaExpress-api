@@ -114,7 +114,7 @@ export default ({ config, db }) => {
         }
         const criteria = createCriteria(month, year, undefined, userId)
 
-        Register.find({ $and: criteria }).populate({ path: 'creditCard', select: 'name' }).exec((err, registers) => {
+        Register.find({ $and: criteria }).populate({ path: 'creditCard', select: 'name description' }).exec((err, registers) => {
 
             if (err) {
                 jsonResponse.data = null
@@ -377,7 +377,7 @@ function getHomeDataMobile(registers, month, year) {
 
     _.forEach(byCard, (cardList) => {
         let oneCard = {
-            name: cardList[0].creditCard.name,
+            name: `${cardList[0].creditCard.name} - ${cardList[0].creditCard.description}`,
 
         }
 

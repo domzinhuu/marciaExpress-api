@@ -7,6 +7,7 @@ const Currency = mongoose.Types.Currency
 let CreditCardSchema = new Schema({
     slug: { type: String },
     name: { type: String, required: true },
+    description: { type: String, default: "S/N" },
     number: { type: String, required: true },
     payday: { type: Number, required: true },
     limit: { type: Currency },

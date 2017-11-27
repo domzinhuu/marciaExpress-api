@@ -43,7 +43,7 @@ export default ({ config, db }) => {
                     return;
                 }
 
-                getFirsPaymentDate(register.creditCard, register.paymentMonth).then(firstDate => {
+                getFirsPaymentDate(register.creditCard, register.paymentMonth,data.payYear).then(firstDate => {
                     let paymentDate = firstDate
                     let installmentValue = register.value / register.installmentNumber
 
@@ -61,6 +61,7 @@ export default ({ config, db }) => {
 
                         paymentDate.setMonth(paymentDate.getMonth() + 1)
                     }
+                    
                     register.save(() => {
                         jsonResponse.data = register;
                         jsonResponse.messages.push('Registro adicionado com sucesso');
@@ -248,7 +249,7 @@ export default ({ config, db }) => {
             if (err) {
                 res.status(500).json({ data: null, messages: ['Ouve algum erro'], error: err })
                 return
-            }
+            }mês
             notify.read = !notify.read
             notify.save((err) => {
                 res.status(200).json({ msg: 'Operação concluida' })
@@ -283,7 +284,7 @@ function validate(req) {
     req.assert('creditCard', 'É necessario informar o cartão usado').notEmpty()
     req.assert('local', 'Informe onde realizou a compra').notEmpty()
     req.assert('paymentMonth', `O campo 'mês de pagamento' é obrigatorio`).notEmpty()
-
+    req.assert('payYear', `O campo 'ano de pagamento' é obrigatorio`).notEmpty()
 
     return new Promise((resolve) => {
 
@@ -338,19 +339,18 @@ function createCriteria(month, year, card, user) {
     return criteria
 }
 
-function getFirsPaymentDate(idCard, paymentMonth) {
+function getFirsPaymentDate(idCard, paymentMonth,paymentYear) {
 
-    const actualYear = new Date().getFullYear()
     const startMonth = MONTHS.indexOf(paymentMonth)
 
     return new Promise(resolve => {
         if (idCard) {
             CreditCard.findById(idCard, (err, res) => {
-                let firstPayment = new Date(actualYear, startMonth, res.payday)
+                let firstPayment = new Date(paymentYear, startMonth, res.payday)
                 resolve(firstPayment)
             })
         } else {
-            let firstPayment = new Date(actualYear, startMonth, 5)
+            let firstPayment = new Date(paymentYear, startMonth, 5)
             resolve(firstPayment)
         }
 

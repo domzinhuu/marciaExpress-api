@@ -389,9 +389,11 @@ function getHomeDataMobile(registers, month, year) {
             }
         })
 
+        console.log(cardList[0].creditCard._id)
         oneCard.paymentDate = myValues[0].paymentDate
         oneCard.value = _.sumBy(myValues, 'value')
         oneCard.value = oneCard.value / 100
+        oneCard.id = cardList[0].creditCard._id
         mapValue.push(oneCard)
     })
 

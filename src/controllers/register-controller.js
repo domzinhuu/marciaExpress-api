@@ -377,8 +377,8 @@ function getHomeDataMobile(registers, month, year) {
 
     _.forEach(byCard, (cardList) => {
         let oneCard = {
-            name: `${cardList[0].creditCard.name} - ${cardList[0].creditCard.description}`,
-
+            name: `${cardList[0].creditCard.name}`,
+            description:`Pagamento: ${cardList[0].creditCard.description}`
         }
 
         let myValues = _.map(cardList, (card) => {

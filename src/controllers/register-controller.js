@@ -89,7 +89,7 @@ export default ({ config, db }) => {
     })
 
     //GET ALL REGISTER FOR A USER /api/registers/my
-    api.get('', validateToken, verifyIfUserIsAdmin, authenticate, (req, res) => {
+    api.get('', validateToken, authenticate, (req, res) => {
         let jsonResponse = new Response();
         const criteria = getCriteriaParams(req)
 
@@ -388,8 +388,6 @@ function getHomeDataMobile(registers, month, year) {
                 paymentDate: installment.paymentDate
             }
         })
-
-        console.log(cardList[0].creditCard._id)
         oneCard.paymentDate = myValues[0].paymentDate
         oneCard.value = _.sumBy(myValues, 'value')
         oneCard.value = oneCard.value / 100

@@ -92,7 +92,7 @@ export default ({ config, db }) => {
                 res.status(500).json(jsonResponse)
             }
 
-            jsonResponse.data = _.orderBy(cards, ['name'], ['asc'])
+            jsonResponse.data = _.sortBy(cards, ['payday','name'])
             jsonResponse.messages = ['Lista carregada']
             jsonResponse.error = null
             res.status(200).json(jsonResponse)

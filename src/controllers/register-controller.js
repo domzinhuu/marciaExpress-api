@@ -46,9 +46,9 @@ export default ({ config, db }) => {
                 getFirsPaymentDate(register.creditCard, register.paymentMonth,data.payYear).then(firstDate => {
                     let paymentDate = firstDate
                     let installmentValue = register.value / register.installmentNumber
-
+                    let installs = []
                     for (let i = 0; i < register.installmentNumber; i++) {
-
+                        
                         let nextPaymentDate = new Date(paymentDate.getTime())
 
                         let installment = {}
@@ -57,16 +57,18 @@ export default ({ config, db }) => {
                         installment.paymentMonth = MONTHS[paymentDate.getMonth()]
                         installment.paymentYear = paymentDate.getFullYear()
                         installment.number = i + 1
-                        register.installments.push(installment)
 
+                        installs.push(installment)
                         paymentDate.setMonth(paymentDate.getMonth() + 1)
                     }
                     
-                    register.save(() => {
+                    register.installments = installs
+                    register.save((err,result) => {
                         jsonResponse.data = register;
                         jsonResponse.messages.push('Registro adicionado com sucesso');
                         jsonResponse.error = null;
 
+                        console.log(err,result)
                         User.findById(register.user, (err, userFound) => {
                             userFound.spendTotal += register.value
 
@@ -92,7 +94,6 @@ export default ({ config, db }) => {
     api.get('', validateToken, authenticate, (req, res) => {
         let jsonResponse = new Response();
         const criteria = getCriteriaParams(req)
-
         Register
             .find({ $and: createCriteria(criteria.month, criteria.year, criteria.cardId, criteria.userId) })
             .populate({ path: 'user', select: 'completeName' })

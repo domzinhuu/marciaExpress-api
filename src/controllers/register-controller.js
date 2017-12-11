@@ -68,7 +68,6 @@ export default ({ config, db }) => {
                         jsonResponse.messages.push('Registro adicionado com sucesso');
                         jsonResponse.error = null;
 
-                        console.log(err,result)
                         User.findById(register.user, (err, userFound) => {
                             userFound.spendTotal += register.value
 

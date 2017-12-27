@@ -107,11 +107,19 @@ export default ({ config, db }) => {
     api.get('/user/:id', validateToken, authenticate, (req, res) => {
         const userId = req.params.id;
         let month = MONTHS[new Date().getMonth()]
-        const year = new Date().getFullYear()
+        let year = new Date().getFullYear()
 
 
         if(new Date().getDate() >= 25){
-            month = MONTHS[new Date().getMonth()+1]
+            if(month.toLocaleLowerCase() === 'dezembro'){
+                month = MONTHS[0];
+                year += 1;
+            }else{
+                month = MONTHS[new Date().getMonth()+1]
+            }
+
+            console.log(month,year);
+
         }
         const criteria = createCriteria(month, year, undefined, userId)
 

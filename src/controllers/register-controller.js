@@ -250,8 +250,8 @@ export default ({ config, db }) => {
 
 
     //PUT Notify /api/registers/notify/change
-    api.put('/notify/change', validateToken, authenticate, (req, res) => {
-        const id = req.body.id
+    api.put('/notify/:id', validateToken, authenticate, (req, res) => {
+        const id = req.params.id
 
         Notify.findById(id, (err, notify) => {
             if (err) {

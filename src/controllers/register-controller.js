@@ -249,7 +249,7 @@ export default ({ config, db }) => {
 
 
 
-    //PUT Notify /api/registers/notify/:id
+    //PUT Notify /api/registers/notify/change
     api.put('/notify/change', validateToken, authenticate, (req, res) => {
         const id = req.body.id
 

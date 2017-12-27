@@ -257,7 +257,7 @@ export default ({ config, db }) => {
             if (err) {
                 res.status(500).json({ data: null, messages: ['Ouve algum erro'], error: err })
                 return
-            }mês
+            }
             notify.read = !notify.read
             notify.save((err) => {
                 res.status(200).json({ msg: 'Operação concluida' })

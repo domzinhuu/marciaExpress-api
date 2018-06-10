@@ -90,9 +90,8 @@ export default ({ config, db }) => {
 
     })
 
-    //GET ALL REGISTER FOR A USER /api/registers/my
+    //GET ALL REGISTER FOR A USER /api/registers/
     api.get('', validateToken, authenticate, (req, res) => {
-        let jsonResponse = new Response();
         const criteria = getCriteriaParams(req)
         Register
             .find({ $and: createCriteria(criteria.month, criteria.year, criteria.cardId, criteria.userId) })
@@ -293,29 +292,6 @@ function validate(req) {
             resolve({ hasError: !result.isEmpty(), errors: _.map(result.array(), error => error.msg) });
         });
     })
-}
-
-function findRegisterOf(id, jsonResponse) {
-
-    return new Promise(resolve => {
-        Register.find({ user: id }, (err, registers) => {
-
-            jsonResponse.data = registers;
-            jsonResponse.messages.push('Registros carregados');
-            jsonResponse.error = null;
-
-            if (err) {
-                jsonResponse.data = null;
-                jsonResponse.messages = [];
-                jsonResponse.messages.push('Ouve erro interno');
-                jsonResponse.error = err;
-            }
-
-
-            resolve(jsonResponse)
-
-        });
-    });
 }
 
 function createCriteria(month, year, card, user) {

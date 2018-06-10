@@ -53,14 +53,13 @@ let verifyIfUserIsAdmin = (req, res, next) => {
     const userId = req.user ? req.user.id : null;
     const username = req.body.username || null;
     const userAgent = req.headers['user-agent']
-
+    
     if (req.method === "OPTIONS") {
         next();
     }
 
     // se for acesso mobile, tratar permissao
-    if (_.includes(userAgent, 'Android') && req.body.type && req.body.type === 'Android') {
-        
+    if ((_.includes(userAgent, 'Android') || _.includes(userAgent, 'iOS')) && req.body.type && (req.body.type === 'Android' || req.body.type === 'iOS' )) {
         verifyAccessMobile(username).then((jsonResponse) => {
 
             if (!jsonResponse) { next(); return }

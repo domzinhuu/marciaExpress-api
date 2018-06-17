@@ -87,7 +87,7 @@ export default ({ config, db }) => {
     const criteria = getCriteriaParams(req);
     Register.find({ $and: createCriteria(criteria.month, criteria.year, criteria.cardId, criteria.userId, criteria.notIncludeCards) })
       .populate({ path: 'user', select: 'completeName' })
-      .populate({ path: 'creditCard', select: 'name description' })
+      .populate({ path: 'creditCard', select: 'name description payday' })
       .exec((err, registers) => {
         res.status(200).json(registers);
       });

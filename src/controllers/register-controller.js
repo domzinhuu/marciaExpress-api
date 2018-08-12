@@ -12,32 +12,114 @@ import Notify from '../models/notify.model';
 import { MONTHS } from '../utils/variables';
 
 export default ({ config, db }) => {
-  let api = Router();
+    let api = Router();
 
-  //POST ADD /api/registers
-  api.post('', validateToken, verifyIfUserIsAdmin, authenticate, (req, res) => {
-    let jsonResponse = new Response();
-    let data = req.body;
-    validate(req).then(result => {
-      if (result.hasError) {
-        jsonResponse.data = null;
-        jsonResponse.messages = result.errors;
-        jsonResponse.error = 'validationError';
-        res.status(400).json(jsonResponse);
-        return;
-      }
+    //POST ADD /api/registers
+    api.post('', validateToken, verifyIfUserIsAdmin, authenticate, (req, res) => {
 
-      let register = new Register(data);
-      let dayPlusOne = register.buyAt.getDate() + 1;
-      register.buyAt.setDate(dayPlusOne);
+        let jsonResponse = new Response();
+        let data = req.body;
+        validate(req).then(result => {
 
-      register.save(err => {
-        if (err) {
-          jsonResponse.data = null;
-          jsonResponse.messages.push('Ouve erro interno');
-          jsonResponse.error = err;
-          res.status(500).json(jsonResponse);
-          return;
+            if (result.hasError) {
+                jsonResponse.data = null;
+                jsonResponse.messages = result.errors;
+                jsonResponse.error = 'validationError';
+                res.status(400).json(jsonResponse);
+                return;
+
+            }
+
+            let register = new Register(data);
+            let dayPlusOne = register.buyAt.getDate() + 1
+            register.buyAt.setDate(dayPlusOne)
+
+            register.save((err) => {
+                if (err) {
+                    jsonResponse.data = null
+                    jsonResponse.messages.push('Ouve erro interno')
+                    jsonResponse.error = err
+                    res.status(500).json(jsonResponse);
+                    return;
+                }
+
+                getFirsPaymentDate(register.creditCard, register.paymentMonth,data.payYear).then(firstDate => {
+                    let paymentDate = firstDate
+                    let installmentValue = register.value / register.installmentNumber
+                    let installs = []
+                    for (let i = 0; i < register.installmentNumber; i++) {
+                        
+                        let nextPaymentDate = new Date(paymentDate.getTime())
+
+                        let installment = {}
+                        installment.value = installmentValue
+                        installment.paymentDate = nextPaymentDate
+                        installment.paymentMonth = MONTHS[paymentDate.getMonth()]
+                        installment.paymentYear = paymentDate.getFullYear()
+                        installment.number = i + 1
+
+                        installs.push(installment)
+                        paymentDate.setMonth(paymentDate.getMonth() + 1)
+                    }
+                    
+                    register.installments = installs
+                    register.save((err,result) => {
+                        jsonResponse.data = register;
+                        jsonResponse.messages.push('Registro adicionado com sucesso');
+                        jsonResponse.error = null;
+
+                        User.findById(register.user, (err, userFound) => {
+                            userFound.spendTotal += register.value
+
+                            userFound.save(err => {
+
+                                CreditCard.findById(register.creditCard, (err, cardFound) => {
+                                    cardFound.used += 1
+                                    cardFound.save()
+                                    res.status(200).json(jsonResponse);
+                                })
+                            })
+                        })
+
+                    });
+                })
+
+            })
+        })
+
+    })
+
+    //GET ALL REGISTER FOR A USER /api/registers/my
+    api.get('', validateToken, authenticate, (req, res) => {
+        let jsonResponse = new Response();
+        const criteria = getCriteriaParams(req)
+        Register
+            .find({ $and: createCriteria(criteria.month, criteria.year, criteria.cardId, criteria.userId) })
+            .populate({ path: 'user', select: 'completeName' })
+            .populate({ path: 'creditCard', select: 'name description payday' })
+            .exec((err, registers) => {
+                res.status(200).json(registers)
+            })
+
+    });
+
+    //GET ALL REGISTER OF THE USER /api/registers/user/:id
+    api.get('/user/:id', validateToken, authenticate, (req, res) => {
+        const userId = req.params.id;
+        let month = MONTHS[new Date().getMonth()]
+        let year = new Date().getFullYear()
+
+
+        if(new Date().getDate() >= 25){
+            if(month.toLocaleLowerCase() === 'dezembro'){
+                month = MONTHS[0];
+                year += 1;
+            }else{
+                month = MONTHS[new Date().getMonth()+1]
+            }
+
+            console.log(month,year);
+
         }
 
         getFirsPaymentDate(register.creditCard, register.paymentMonth, data.payYear).then(firstDate => {
@@ -171,6 +253,7 @@ export default ({ config, db }) => {
 
               cardFound.save();
 
+<<<<<<< HEAD
               jsonResponse.data = register;
               jsonResponse.messages.push('Registro removido com sucesso');
               jsonResponse.error = null;
@@ -204,6 +287,23 @@ export default ({ config, db }) => {
       res.status(200).json(jsonResponse);
     });
   });
+=======
+    //PUT Notify /api/registers/notify/change
+    api.put('/notify/:id', validateToken, authenticate, (req, res) => {
+        const id = req.params.id
+
+        Notify.findById(id, (err, notify) => {
+            if (err) {
+                res.status(500).json({ data: null, messages: ['Ouve algum erro'], error: err })
+                return
+            }
+            notify.read = !notify.read
+            notify.save((err) => {
+                res.status(200).json({ msg: 'Operação concluida' })
+            })
+        })
+    })
+>>>>>>> homologacao
 
   //GET ALL notifitions /api/registers/notify/all
   api.get('/notify/all', validateToken, authenticate, (req, res) => {
